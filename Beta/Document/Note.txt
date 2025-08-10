@@ -1,0 +1,71 @@
+venv\Scripts\activate.bat cmd
+scenic Scenic/examples/webots/vacuum/vacuum_simple.scenic
+scenic Scenic/examples/webots/road/adjacentOpposingPair.scenic
+
+
+// Task 1
+class box(Object):
+    length: 0.2
+    width: 0.2
+    height: 0.2
+    position: (0,0,0.1)
+    color: [0.785, 0.785, 1]
+
+class box2(Object):
+    length: 0.2
+    width: 0.2
+    height: 0.2
+    position: (0,0,0.1)
+    color: [1, 0.785, 1]
+
+class floor(Object):
+    length: 1
+    width: 1
+    height: 0.1
+    position: (0,0,0)
+
+room_region = RectangularRegion((0,0,0),0,4,4)
+workspace = Workspace(room_region)
+
+# Create floor and walls
+floor1 = new floor on workspace
+Box2 = new box2 on floor1
+Box1 = new box on Box2
+ 
+
+Microsoft Windows [Version 10.0.26100.4349]
+(c) Microsoft Corporation. All rights reserved.
+
+C:\Users\bluet>netstat -aon | findstr :2000
+  TCP    0.0.0.0:2000           0.0.0.0:0              LISTENING       64300
+
+C:\Users\bluet>taskkill /PID 64300 /F
+SUCCESS: The process with PID 64300 has been terminated.
+
+C:\Users\bluet>
+
+
+
+
+
+behavior DriveAvoidingCollisions(target_speed=25, avoidance_threshold=10):
+    try:
+        do FollowLaneBehavior(target_speed=target_speed)
+    interrupt when self.distanceToClosest(_model.Vehicle) <= avoidance_threshold:
+        take SetThrottleAction(0), SetBrakeAction(1)
+
+
+    def distanceToClosest(self, type: type) -> Object:
+        """Compute the distance to the closest object of the given type.
+
+        For example, one could write :scenic:`self.distanceToClosest(Car)` in a behavior.
+        """
+        objects = simulation().objects
+        minDist = float('inf')
+        for obj in objects:
+            if not isinstance(obj, type):
+                continue
+            d = distance from self to obj
+            if 0 < d < minDist:
+                minDist = d
+        return minDist
